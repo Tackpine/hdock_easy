@@ -1,9 +1,21 @@
-#for f in `ls cd44/*.pdb`; do grep -i ATOM $f > ${f:0:-4}_atoms.pdb ; done
-#for f in `ls tsg6/*.pdb`; do grep -i ATOM $f > ${f:0:-4}_atoms.pdb ; done
+#!/bin/bash
 
-#for f in `ls cd44/*_atoms.pdb`; do ./hdock tsg6/*_atoms.pdb $f -out ${f:0:-4}.out ; done
-for f in `ls *.out`; do mkdir ${f:0:-4}; done
-for f in `ls *.out`; do cp $f ${f:0:-4}; done
+# 创建/清空汇总文件
+> total.out
 
-for f in `ls *.out`; do cd ${f:0:-4}; ../createpl *.out top100.pdb -nmax 100 -complex -models; rename s/model/${f:0:-4}/g *.pdb; done
+# 遍历所有.out文件
+for outfile in A35R_cdrall_3-15_*.out; do
+    # 提取基础文件名（不带扩展名）
+    base_name="${outfile%.out}"
+    
+    # 提取第六行第七列数值
+    value=$(sed -n "6p" "$outfile" | awk '{print $7}')
+    
+    # 将结果写入汇总文件
+    echo "${base_name}=${value}" >> total.out
+    
+    # 可选进度显示
+    echo "已处理：$outfile → 提取值：$value"
+done
 
+echo "所有数据已汇总至 total.out"
